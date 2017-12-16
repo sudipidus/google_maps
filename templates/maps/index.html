@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Google Maps API Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="icon" href="/icons/favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="/icons/favicon.ico" type="image/x-icon"/>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-sm-12">
+
+
+                <div class="well col-sm-12">
+                    <div class="col-sm-6">
+                        <form class="form-horizontal" method="post" action="">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="country" class="control-label col-sm-4">Country</label>
+                                <div class="col-sm-8">
+                                <input class="form-control" type="text" name="country" id="country"
+                                               placeholder="country name" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="streetAddress" class="control-label col-sm-4">Street Address</label>
+                                <div class="col-sm-8">
+                                        <input class="form-control" type="text" name="streetAddress" id="streetAddress"
+                                               placeholder="Address" value=""/>
+
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="state" class="control-label col-sm-4">State</label>
+                                <div class="col-sm-8">
+                                   <input class="form-control" type="text" name="state" id="state"
+                                               placeholder="state" value=""/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="city" class="control-label col-sm-4">City</label>
+                                <div class="col-sm-8">
+                                    <input class="form-control" type="text" name="city" id="city"
+                                               placeholder="city" value=""/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="zipCode" class="control-label col-sm-4">Zip Code</label>
+                                <div class="col-sm-8">
+                                    <input class="form-control" type="text" name="zipCode" id="zipCode"
+                                               placeholder="zipCode" value=""/>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="lat" class="control-label col-sm-4">Latitude</label>
+                                <div class="col-sm-8">
+                                        <input class="form-control" type="number" step="any" name="lat" id="lat"
+                                               placeholder="lattitude" value="12.77">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lng" class="control-label col-sm-4">Longitude</label>
+                                <div class="col-sm-8">
+                                        <input class="form-control" type="number" step="any" name="lng" id="lng"
+                                               placeholder="longitude" value="77.12">
+                                </div>
+                            </div>
+
+
+                        </form>
+                    </div>
+                    <div class="col-sm-6">
+                        <div id="googleMap" style="width:100%;height:400px;"></div>
+                        <br>
+                        <button type="submit" class="btn btn-primary btn-xs" onclick="UserAction()">ReverseGeoCode
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#countryList').on('change', function () {
+                var countryName = $('option:selected', this).text();
+                var countryId = $(this).val();
+                var $dropdown = $("#stateList");
+                $dropdown.empty();
+                $.ajax({
+                    url: '/ota_adapter/states/' + countryId,
+                    type: 'GET'
+                }).done(function (json) {
+                    var $dropdown = $("#stateList");
+                    $dropdown.empty();
+                    $.each(json, function () {
+                        $dropdown.append($("<option />").val(this.id).text(this.name));
+                    });
+                })
+            });
+
+            $('#stateList').on('change', function () {
+                var stateName = $('option:selected', this).text();
+                var stateId = $(this).val();
+                var $dropdown = $("#cityList");
+                $dropdown.empty();
+                $.ajax({
+                    url: '/ota_adapter/cities/' + stateId,
+                    type: 'GET'
+                }).done(function (json) {
+                    var $dropdown = $("#cityList");
+                    $dropdown.empty();
+                    $.each(json, function () {
+                        $dropdown.append($("<option />").val(this.id).text(this.name));
+                    });
+                })
+            })
+
+        });
+
+        function myMap() {
+            var myLatLng = {
+                lat: Number(document.getElementById('lat').value),
+                lng: Number(document.getElementById('lng').value)
+            };
+            var mapProp = {
+                center: new google.maps.LatLng(document.getElementById('lat').value, document.getElementById('lng').value),
+                zoom: 10,
+            };
+            var map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+
+
+            var marker = new google.maps.Marker({
+                position: myLatLng,
+                map: map,
+                title: 'Adjust Listing Location by dragging me, Be careful while changing location',
+                draggable: true
+            });
+
+            google.maps.event.addListener(
+                marker,
+                'drag',
+                function (event) {
+                    document.getElementById('lat').value = this.position.lat();
+                    document.getElementById('lng').value = this.position.lng();
+                });
+
+
+            google.maps.event.addListener(marker, 'dragend', function (event) {
+                document.getElementById('lat').value = this.position.lat();
+                document.getElementById('lng').value = this.position.lng();
+            });
+
+
+        }
+
+        function UserAction() {
+            $.ajax({
+                url: 'reverseGeocode/'+Number(document.getElementById('lat').value)+'/'+ Number(document.getElementById('lng').value),
+                type: 'GET'
+            }).done(function (data, statusText, resObject) {
+                json =  resObject.responseJSON;
+                lat = json['lat'];
+                lng = json['lng'];
+                streetAddress = json['streetAddress'];
+                zipCode = json['zipCode'];
+                state = json['state'];
+                city=json['city'];
+                country = json['country'];
+                document.getElementById('lat').value=lat;
+                document.getElementById('lng').value=lng;
+                document.getElementById('streetAddress').value=streetAddress;
+                document.getElementById('zipCode').value=zipCode;
+                document.getElementById('state').value=state;
+                document.getElementById('city').value=city;
+                document.getElementById('country').value=country;
+            })
+
+            {#var locationForm = document.createElement("form");#}
+            {#locationForm.method = "POST";#}
+            {#locationForm.action = "";#}
+            {##}
+            {#// Create an input#}
+            {#var csrfInput = document.getElementsByName('csrfmiddlewaretoken')[0];#}
+            {#csrfInput.value = csrfInput.value;#}
+            {##}
+            {##}
+            {#//action-type#}
+            {#var actionInput = document.createElement('input');#}
+            {#actionInput.name = 'action-type'#}
+            {#actionInput.value = 'google-map';#}
+            {##}
+            {#//lat#}
+            {#var latInput = document.createElement('input');#}
+            {#latInput.name = 'lat';#}
+            {#latInput.value = lat.value;#}
+            {##}
+            {#//lng#}
+            {#var lngInput = document.createElement('input');#}
+            {#lngInput.name = 'lng';#}
+            {#lngInput.value = lng.value;#}
+            {##}
+            {#// Add the input to the form#}
+            {#locationForm.appendChild(csrfInput);#}
+            {#locationForm.appendChild(actionInput);#}
+            {#locationForm.appendChild(latInput);#}
+            {#locationForm.appendChild(lngInput)#}
+            {#// Add the form to dom#}
+            {#document.body.appendChild(locationForm);#}
+            {##}
+            {##}
+            {#locationForm.submit();#}
+        }
+
+    </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=MAP_KEY&callback=myMap"></script>
+
+
+
+</body>
+</html>
+
