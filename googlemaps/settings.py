@@ -71,13 +71,13 @@ WSGI_APPLICATION = 'googlemaps.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -120,4 +120,4 @@ ICON_URL = 'icons'
 ICON_ROOT = os.path.join(BASE_DIR, 'icons')
 
 #google map api key
-google_map_key = 'MAP_KEY'
+google_map_key = 'AIzaSyBomc3rpHFXcitPjwKWv7CE5_zPZ03MpDA'
